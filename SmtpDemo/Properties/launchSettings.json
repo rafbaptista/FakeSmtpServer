@@ -1,0 +1,14 @@
+{
+  "profiles": {
+    "SmtpDemo": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "SMTP_SERVER": "smtp.gmail.com",
+        "SMTP_PORT": "587",
+        "SMTP_USERNAME": "clockpunched@gmail.com",
+        "SMTP_PASSWORD": "<your_password_here>",
+        "SMTP_SENDER": "rafabap100@gmail.com"
+      }
+    }
+  }
+}
