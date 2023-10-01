@@ -1,20 +1,18 @@
-﻿using SmtpServer.ComponentModel;
-using SmtpServer;
-using MimeKit;
+﻿using MimeKit;
 using SmtpDemoTests.Fixtures.Email.Hooks;
-using SmtpDemoTests.Fixtures.Email.Configuration;
+using SmtpServer.ComponentModel;
+using SmtpServer;
 
 namespace SmtpDemoTests.Fixtures.Email
 {
-    public class EmailFixture
+    public class InMemoryEmailFixture
     {
-        public EmailFixture()
+        public InMemoryEmailFixture()
         {
             Initialize();
         }
         public void Initialize()
         {
-            DeleteRemainingEmail();
             SetEnvironmentVariables();
 
             var options = CreateOptions();
@@ -25,27 +23,8 @@ namespace SmtpDemoTests.Fixtures.Email
 
         public MimeMessage GetSentEmail()
         {
-            string[] content = File.
-                ReadAllText(EmailConstants.SavedPath)
-                .Split(Environment.NewLine)[1] //skip header
-                .Split(';');
-
-            var bodyBuilder = new BodyBuilder
-            {
-                TextBody = content[2]
-            };
-
-            var message = new MimeMessage
-            {
-                Subject = content[1],
-                Body = bodyBuilder.ToMessageBody()
-            };
-
-            message.To.Add(MailboxAddress.Parse(content[0]));
-
-            return message;
+            return InMemoryMessageStore.SentMessage;
         }
-
         private ISmtpServerOptions CreateOptions()
         {
             return new SmtpServerOptionsBuilder()
@@ -62,7 +41,7 @@ namespace SmtpDemoTests.Fixtures.Email
         private ServiceProvider BuildServiceProvider()
         {
             var serviceProvider = new ServiceProvider();
-            serviceProvider.Add(new SampleMessageStore());
+            serviceProvider.Add(new InMemoryMessageStore());
             serviceProvider.Add(userAuthenticatorFactory: new SampleUserAuthenticator());
             serviceProvider.Add(userAuthenticator: new SampleUserAuthenticator());
             return serviceProvider;
@@ -74,12 +53,7 @@ namespace SmtpDemoTests.Fixtures.Email
             Environment.SetEnvironmentVariable("SMTP_PORT", "587");
             Environment.SetEnvironmentVariable("SMTP_USERNAME", "user");
             Environment.SetEnvironmentVariable("SMTP_PASSWORD", "password");
-            Environment.SetEnvironmentVariable("SMTP_SENDER", "rafabap100@gmail.com");            
-        }
-
-        private void DeleteRemainingEmail()
-        {
-            File.Delete(EmailConstants.SavedPath);
+            Environment.SetEnvironmentVariable("SMTP_SENDER", "rafabap100@gmail.com");
         }
     }
 }

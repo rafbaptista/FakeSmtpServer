@@ -1,5 +1,4 @@
 ﻿using MimeKit;
-using SmtpDemoTests.Fixtures.Email.Configuration;
 using SmtpServer;
 using SmtpServer.Protocol;
 using SmtpServer.Storage;
@@ -7,22 +6,18 @@ using System.Buffers;
 
 namespace SmtpDemoTests.Fixtures.Email.Hooks
 {
-    public class SampleMessageStore : MessageStore
+    public class InMemoryMessageStore : MessageStore
     {
+        public static MimeMessage SentMessage { get; private set; }
+
+        public InMemoryMessageStore()
+        {
+            SentMessage = null;
+        }
         public override async Task<SmtpResponse> SaveAsync(ISessionContext context, IMessageTransaction transaction, ReadOnlySequence<byte> buffer, CancellationToken cancellationToken)
         {
             MimeMessage message = await GetEmailContent(buffer, cancellationToken);
-
-            using (var sw = File.CreateText(EmailConstants.SavedPath))
-            {
-                sw.Write("To;Subject;Body");
-                sw.WriteLine();
-                sw.Write(message.To);
-                sw.Write(';');
-                sw.Write(message.Subject);
-                sw.Write(';');
-                sw.Write(message.TextBody);
-            }
+            StoreMessage(message);
             return SmtpResponse.Ok;
         }
 
@@ -38,6 +33,11 @@ namespace SmtpDemoTests.Fixtures.Email.Hooks
             stream.Position = 0;
 
             return await MimeMessage.LoadAsync(stream, cancellationToken);
+        }
+
+        private void StoreMessage(MimeMessage message)
+        {
+            SentMessage = message;
         }
     }
 }
